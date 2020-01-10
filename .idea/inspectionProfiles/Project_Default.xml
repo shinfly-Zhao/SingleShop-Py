@@ -1,0 +1,20 @@
+<component name="InspectionProjectProfileManager">
+  <profile version="1.0">
+    <option name="myName" value="Project Default" />
+    <inspection_tool class="PyUnresolvedReferencesInspection" enabled="true" level="WARNING" enabled_by_default="true">
+      <option name="ignoredIdentifiers">
+        <list>
+          <option value="django.db.models" />
+          <option value="xadmin.views" />
+          <option value="django.db.models.Q" />
+          <option value="rest_framework.filters" />
+          <option value="django_filters.rest_framework.DjangoFilterBackend" />
+          <option value="rest_framework.serializers" />
+          <option value="rest_framework.viewsets" />
+          <option value="rest_framework.status" />
+          <option value="rest_framework.mixins" />
+        </list>
+      </option>
+    </inspection_tool>
+  </profile>
+</component>
