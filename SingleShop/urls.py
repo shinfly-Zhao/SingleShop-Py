@@ -27,6 +27,7 @@ from rest_framework_swagger.views import get_swagger_view
 # from rest_framework_jwt.views import obtain_jwt_token
 from users.views import *
 from goods.views import *
+from chat.views import *
 from rest_framework_jwt.views import obtain_jwt_token
 from SingleShop.settings import MEDIA_ROOT, STATIC_ROOT
 
@@ -37,6 +38,7 @@ router.register("banner", BannerViewSet, base_name="banner")  # 轮播图
 router.register("goods", GoodsViewSet, base_name="goods")  # 商品
 router.register("address", UserAddressViewSet, base_name="address")  # 用户地址
 router.register("wxreg", UserRegistViewSet, base_name="wxreg")  # 用户注册
+router.register("chat", BaseChatViewSet, base_name="chat")  # 社区
 
 # router.register("reg",UserRegistViewSet,base_name="reg")  # 电话号码注册
 # router.register("wxreg", UserWxRegistViewSet,base_name="wxreg")  # 微信注册
