@@ -27,3 +27,12 @@ class IsOwnerOrReadOnly(permissions.BasePermission):
 
         # 否则只有当前用户可以修改编辑对象
         return obj.user == request.user
+
+
+class UserHasMobile(permissions.BasePermission):
+    # 查看用户是否绑定电话号码
+    def has_object_permission(self, request, view, obj):
+        if request.user.mobile:
+            return True
+        else:
+            return False
