@@ -20,7 +20,6 @@ class ResponseSatatusCode(Enum):
     HTTPCODE_2004_NO_CONTENT = 2004  # 成功接收处理
     HTTPCODE_40001_THREE_ERROR = 4001  # 三方错误
     HTTPCODE_40002_RULES_ERROR = 4002  # 格式错误
-    HTTPCODE_40004_NOT_FIND = 4004  # 格式错误
 
 
 def CodeStatus(type, data,html=None,header=None):
