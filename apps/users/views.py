@@ -19,6 +19,7 @@ from datetime import datetime, timedelta
 from rest_framework.permissions import IsAuthenticated  # 权限判断
 from .models import *
 from rest_framework_jwt.serializers import jwt_encode_handler, jwt_payload_handler
+from SingleShop.settings import MPBILEAPIKEY
 
 
 class UserAddressViewSet(XBListModelMixin,
@@ -105,3 +106,58 @@ class UserRegistViewSet(XBCreateModelMixin):
 
     def perform_create(self, serializer):
         return serializer.save()
+
+
+class SmsCodeViewSet(XBCreateModelMixin):
+    """
+    发送短信验证码
+    """
+    serializer_class = SmsSerializer
+
+    def generate_code(self):
+        """
+        生成四位数字的验证码
+        :return:
+        """
+        seeds = "1234567890"
+        random_str = []
+        for i in range(4):
+            random_str.append(choice(seeds))
+
+        return "".join(random_str)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+        except:
+            headers = self.get_success_headers(serializer.data)
+            return Response(error_msg(serializer._errors), status=status.HTTP_400_BAD_REQUEST, headers=headers)
+        mobile = serializer.validated_data["mobile"]
+        yun_pian = YunPian(MPBILEAPIKEY)
+        code = self.generate_code()
+        sms_status = yun_pian.send_sms(code=code, mobile=mobile)
+
+        if sms_status["code"] != 0:
+            # 发送失败
+            return Response(status=status.HTTP_400_BAD_REQUEST,data={
+                "status": {
+                    "code": ResponseSatatusCode.HTTPCODE_40001_THREE_ERROR.value,
+                    "msg": sms_status["msg"]
+                }
+            })
+        else:
+            code_record = VerifyCode(code=code, mobile=mobile)
+            code_record.save()
+            return Response(status=status.HTTP_201_CREATED,data={
+                "status": {
+                    "code": ResponseSatatusCode.HTTPCODE_2001_CREATED.value,
+                    "msg": "success"
+                }
+            })
+
+
+class UserBingdingMobileViewSet(XBCreateModelMixin):
+    permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
+    authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
+    serializer_class = MobileBinding

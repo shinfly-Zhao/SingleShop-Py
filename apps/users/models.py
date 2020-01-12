@@ -15,6 +15,8 @@ class UserProfile(AbstractUser):
     email = models.EmailField(max_length=100, null=True, blank=True, verbose_name="邮箱")
     utype = models.CharField(default="members", max_length=50, choices=(("members", "会员"), ("admin", "管理员")),
                              verbose_name="用户类型")
+    user_font = models.ImageField(upload_to="user/font/", null=True, blank=True, verbose_name="用户头像")
+    nick_name = models.CharField(max_length=100, verbose_name="用户昵称", default="暂无昵称")
     add_time = models.DateTimeField(default=datetime.now, verbose_name="注册时间")
 
     class Meta:
@@ -44,3 +46,19 @@ class UserAddress(models.Model):
 
     def __str__(self):
         return self.address
+
+
+class VerifyCode(models.Model):
+    """
+    短信验证码
+    """
+    code = models.CharField(max_length=10, verbose_name="验证码")
+    mobile = models.CharField(max_length=11, verbose_name="电话")
+    add_time = models.DateTimeField(default=datetime.now, verbose_name="添加时间")
+
+    class Meta:
+        verbose_name = "短信验证码"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.code
