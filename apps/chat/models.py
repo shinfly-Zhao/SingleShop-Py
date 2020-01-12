@@ -5,7 +5,7 @@ from users.models import *
 class BaseChat(models.Model):
     # 基本论坛
     title = models.CharField(max_length=100, verbose_name="标题", help_text="标题")
-    imgs = models.CharField(max_length=2000,verbose_name="图片地址", help_text="图片地址")
+    imgs = models.CharField(max_length=2000, verbose_name="图片地址", help_text="图片地址",null=True,blank=True)
     add_time = models.DateTimeField(default=datetime.now, verbose_name="发布时间")
     user = models.ForeignKey(UserProfile, verbose_name="所属用户", on_delete=models.CASCADE, related_name="base_chat")
 
@@ -20,12 +20,12 @@ class BaseChat(models.Model):
 class RreplyBasChat(models.Model):
     # 回复基本论坛
     title = models.CharField(max_length=100, verbose_name="标题", help_text="标题")
-    imgs = models.CharField(max_length=2000,verbose_name="图片地址", help_text="图片地址")
-    add_time = models.DateTimeField(default=datetime.now, verbose_name="发布时间")
     user = models.ForeignKey(UserProfile, verbose_name="所属用户", on_delete=models.CASCADE)
-    chat = models.ForeignKey(BaseChat, verbose_name="基础帖子", on_delete=models.CASCADE)
+    chat = models.ForeignKey(BaseChat, verbose_name="基础帖子", on_delete=models.CASCADE, null=True, blank=True,
+                             related_name="sub_chat")
     parent = models.ForeignKey("self", null=True, blank=True, verbose_name="所属回帖", help_text="所属回帖",
-                                        related_name="sub_cat", on_delete=models.CASCADE)
+                               related_name="sub_cat", on_delete=models.CASCADE)
+    add_time = models.DateTimeField(default=datetime.now, verbose_name="发布时间")
 
     class Meta:
         verbose_name = '回帖管理'
@@ -35,13 +35,14 @@ class RreplyBasChat(models.Model):
         return self.title
 
 
+class UserChatFav(models.Model):
+    # 用户点赞帖子
+    chat = models.ForeignKey(BaseChat, verbose_name="帖子", on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, verbose_name="用户", on_delete=models.CASCADE)
 
+    class Meta:
+        verbose_name = '帖子点赞'
+        verbose_name_plural = verbose_name
 
-
-
-
-
-
-
-
-
+    def __str__(self):
+        return self.chat.title
