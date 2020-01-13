@@ -74,3 +74,9 @@ class GoodsRetrieveSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goods
         fields = ('id', 'name', 'market_price', 'shop_price', "images")
+
+
+class ShopCouponsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ShopCoupons
+        fields = "__all__"

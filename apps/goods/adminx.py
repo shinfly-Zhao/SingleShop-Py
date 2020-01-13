@@ -32,8 +32,14 @@ class GoodsBannerXadmin():
     # 商品轮播小图序列化
     list_display = ["goods", "image"]
 
+
+class ShopCouponsXadmin():
+    # 购物券
+    list_display = ["name", "nums"]
+
 xadmin.site.register(GoodsCategory, GoodsCategoryAdmin)
 xadmin.site.register(Goods, GoodsAdmin)
 xadmin.site.register(SingleShopNew, SingleShopNewAdmin)
 xadmin.site.register(Banner, ImgBannerAdmin)
 xadmin.site.register(GoodsImage, GoodsBannerXadmin)
+xadmin.site.register(ShopCoupons, ShopCouponsXadmin)

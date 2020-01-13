@@ -7,8 +7,8 @@ class GoodsCategory(models.Model):
     # 商品类别
     name = models.CharField(max_length=30, verbose_name="类别名称")
     code = models.CharField(max_length=30, verbose_name="类别编码")
-    index = models.IntegerField(verbose_name="展示顺序",null=True,blank=True)
-    icon = models.ImageField(upload_to="category/icon/", verbose_name="类别图标",null=True,blank=True)
+    index = models.IntegerField(verbose_name="展示顺序", null=True, blank=True)
+    icon = models.ImageField(upload_to="category/icon/", verbose_name="类别图标", null=True, blank=True)
     add_time = models.DateTimeField(default=datetime.now, verbose_name="创建时间")
 
     class Meta:
@@ -62,7 +62,7 @@ class GoodsImage(models.Model):
     """
     商品轮播图 -- 每个商品的小图
     """
-    goods = models.ForeignKey(Goods, verbose_name="商品", related_name="images",on_delete=models.CASCADE)
+    goods = models.ForeignKey(Goods, verbose_name="商品", related_name="images", on_delete=models.CASCADE)
     image = models.ImageField(upload_to="goods/ming", verbose_name="图片", null=True, blank=True)
     add_time = models.DateTimeField(default=datetime.now, verbose_name="添加时间")
 
@@ -83,7 +83,7 @@ class Banner(models.Model):
         (1, "首页轮播"),
         (2, "最新活动"),
     )
-    goods = models.ForeignKey(Goods, verbose_name="商品",on_delete=models.CASCADE)
+    goods = models.ForeignKey(Goods, verbose_name="商品", on_delete=models.CASCADE)
     image = models.ImageField(upload_to='goods/banner/', verbose_name="轮播图片")
     index = models.IntegerField(default=0, verbose_name="轮播顺序")
     show_type = models.IntegerField(default=1, choices=SHOW_TYPE, verbose_name="展示控制")
@@ -97,24 +97,18 @@ class Banner(models.Model):
         return self.goods.name
 
 
+class ShopCoupons(models.Model):
+    # 商品购物券
+    name = models.CharField(max_length=50, verbose_name="介绍", help_text="介绍")
+    st_time = models.DateTimeField(verbose_name="开始时间", help_text="开始时间")
+    en_time = models.DateTimeField(verbose_name="结束时间", help_text="结束时间")
+    lines = models.FloatField(verbose_name="额度", help_text="额度")
+    is_use = models.BooleanField(default=True, verbose_name="是否可用", help_text="是否可用")
+    nums = models.IntegerField(verbose_name="总数", help_text="总数")
 
+    class Meta:
+        verbose_name = '优惠券'
+        verbose_name_plural = verbose_name
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    def __str__(self):
+        return self.name

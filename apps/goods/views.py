@@ -3,12 +3,19 @@ from .models import *
 from utils.http.XBAPIView import *
 from utils.page.page import NewPageSetPagination
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework_jwt.authentication import JSONWebTokenAuthentication
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import filters
 from .filters import *
+from user_operation.serializer import *
 
 
 class GoodsCategoryViewSet(XBListModelMixin):
-    # 商品类别
+    """
+    list:
+        商品类别
+    """
     serializer_class = GoodsCategoryListSerizlizer
 
     def get_queryset(self):
@@ -50,3 +57,23 @@ class GoodsViewSet(XBListModelMixin,
             return GoodsListSerializer
         elif self.action == "retrieve":
             return GoodsRetrieveSerializer
+
+
+class ShopCouponsViewSet(XBListModelMixin,
+                         XBCreateModelMixin):
+    # 购物券
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
+
+    def get_queryset(self):
+        return ShopCoupons.objects.filter(is_use=True)
+
+    def get_serializer_class(self):
+        if self.action == "list":
+            return ShopCouponsSerializer
+        elif self.action == "create":
+            return UserGetCouponSerializer
+        else:
+            return ShopCouponsSerializer
+
+
