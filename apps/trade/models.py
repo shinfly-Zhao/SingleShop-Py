@@ -43,7 +43,7 @@ class OrderInfo(models.Model):
     order_mount = models.FloatField(default=0.0, verbose_name="订单金额")
     pay_time = models.DateTimeField(null=True, blank=True, verbose_name="支付时间")
     cart = models.CharField(max_length=100, null=True, blank=True, verbose_name="购物车")
-    goods = models.ForeignKey(Goods,max_length=100, null=True, blank=True, verbose_name="商品")
+    goodsid = models.CharField(max_length=100, null=True, blank=True, verbose_name="商品")
     nums = models.IntegerField(null=True, blank=True, verbose_name="数量")
 
     # 用户信息
