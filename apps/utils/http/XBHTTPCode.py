@@ -6,20 +6,20 @@
 from enum import Enum
 from rest_framework.response import Response
 
+
 class ResponseSatatusCode(Enum):
     HTTPCODE_1_OK = 1  # 返回成功并且有数据返回
     HTTPCODE_0_OK = 0  # 返回成功但无数据返回
+    HTTPCODE_1000_INCORRECT_CREDENTIALS = 1000  # 无效的凭证（账号不存在）
     HTTPCODE_1001_PARAMETER_ERROR = 1001  # 参数错误
-    HTTPCODE_1002_NOPOSTDATA = 1002  # 没有POST数据
-    HTTPCODE_4004_CAN_NO_FIND = 4004  # 找不到资源
+    HTTPCODE_1002_PARAMETER_VALUE_ERROR = 1002  # 参数值错误
+    HTTPCODE_1003_NOPOSTDATA = 1003  # 没有POST数据
     HTTPCODE_4003_NO_PERMISSIONS = 4003  # 没有权限
-    HTTPCODE_1005_SERVER_ERROR = 1005  # 服务器内部问题
-    HTTPCODE_1006_PARAMETER_VALUE_ERROR = 1006  # 参数值错误
-    HTTPCODE_1007_INCORRECT_CREDENTIALS = 1007  # 无效的凭证（账号不存在）
+    HTTPCODE_4004_NO_FIND = 4004  # 没有找到
+    HTTPCODE_1005_SERVER_ERROR = 5005  # 服务器内部问题
     HTTPCODE_2001_CREATED = 2001  # 创建成功
     HTTPCODE_2004_NO_CONTENT = 2004  # 成功接收处理
-    HTTPCODE_40001_THREE_ERROR = 4001  # 三方错误
-    HTTPCODE_40002_RULES_ERROR = 4002  # 格式错误
+    HTTPCODE_4000_BAD_REQUEST = 4000  # 请求失败
 
 
 def CodeStatus(type, data,html=None,header=None):
@@ -49,9 +49,8 @@ def CodeStatus(type, data,html=None,header=None):
         })
 
 
-
 def error_msg(msg):
     return {"status": {
-                    "code": ResponseSatatusCode.HTTPCODE_40002_RULES_ERROR.value,
+                    "code": ResponseSatatusCode.HTTPCODE_1001_PARAMETER_ERROR.value,
                     "msg": msg
                 }}

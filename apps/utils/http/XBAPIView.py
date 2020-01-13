@@ -59,7 +59,6 @@ class XBCreateModelMixin(viewsets.GenericViewSet,
     """
 
     def create(self, request, *args, **kwargs):
-        print(request.data)
         try:
             method = self.request.META["REQUEST_METHOD"].lower()
             serializer = self.get_serializer(data=request.data)
@@ -140,3 +139,11 @@ class XBUpdateModelMixin(mixins.UpdateModelMixin,
     def partial_update(self, request, *args, **kwargs):
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
+
+
+class XBModelViewSet(XBListModelMixin,
+                   XBCreateModelMixin,
+                   XBRetrieveModelMixin,
+                   XBDestroyModelMixin,
+                   XBUpdateModelMixin):
+    pass
