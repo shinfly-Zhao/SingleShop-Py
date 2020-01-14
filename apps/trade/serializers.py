@@ -8,6 +8,9 @@ from rest_framework import serializers
 from goods.seralizer import GoodsListSerializer
 from .models import *
 from datetime import datetime ,timedelta
+from random import Random
+from utils.pay.wx.xcu import WXPay
+import time
 
 
 class ShopCartListSerializer(serializers.ModelSerializer):
@@ -84,11 +87,11 @@ class CreateOrederSerializer(serializers.ModelSerializer):
     # 创建订单后返回商品数据
     goods = GoodsOrderInfo(many=True,read_only=True)
 
-    cart = serializers.CharField(help_text="购物车id")
+    # cart = serializers.CharField(help_text="购物车id")
 
     class Meta:
         model = OrderInfo
-        fields = ("id", "address", "user", "cart","goodsid","num")
+        fields = ("id", "address", "user", "cart", "goodsid","nums","goods")
 
     def create(self,validated_data):
         validated_data["cart"] = validated_data.get("cart",None)
@@ -146,6 +149,72 @@ class CreateOrederSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError("商品错误")
 
 
+class PayOrederSerializer(serializers.Serializer):
+    # 支付
+    user = serializers.HiddenField(
+        default=serializers.CurrentUserDefault()
+    )
+
+    order = serializers.IntegerField(required=True,help_text="订单id")
+    paydata = serializers.JSONField(read_only=True)
+    openid = serializers.CharField()
+
+    def generate_order_sn(self, uid):
+        # 当前时间+userid+随机数
+        random_ins = Random()
+        order_sn = "{time_str}{userid}{ranstr}".format(
+            time_str=(datetime.now() + timedelta(hours=8)).strftime("%Y%m%d%H%M%S"),
+            userid=uid,
+            ranstr=random_ins.randint(10, 99))
+        return order_sn
+
+    def create(self, validated_data):
+        user = self.context["request"].user  # 所属用户
+        orderid = validated_data["order"]  # 订单地址
+        ip = self.context["request"].META["HTTP_X_FORWARDED_FOR"]
+        wx_pay = WXPay(openid=validated_data["openid"])
+        out_trade_no = self.generate_order_sn(user.id)  # 随机订单号
+        PayOrder = OrderInfo.objects.get(id=int(orderid))  # 当前订单
+        total_fee = PayOrder.order_mount  # 总金额
+
+        # 创建订单详情
+        redata = wx_pay.pay(ip=ip, nonce_str=self.generate_order_sn(user.id), total_fee=int(total_fee)*100,
+                            out_trade_no=out_trade_no, )
+        # 开始创建订单
+
+        if redata["return_code"] == "SUCCESS" and redata["result_code"] == "SUCCESS":
+            # 成功
+            order_sn = out_trade_no
+            Order = OrderInfo.objects.get(id=int(orderid))
+            Order.order_sn = order_sn
+            Order.save()
+
+        prepay_id = redata["prepay_id"]
+        # 获取随机字符串
+        nonceStr = redata["nonce_str"]
+        timeStamp = str(int(time.time()))
+        # 获取paySign签名，这个需要我们根据拿到的prepay_id和nonceStr进行计算签名
+        paySign = wx_pay.get_paysign(prepay_id, nonceStr)
+        redata["paySign"] = paySign
+        redata["timeStamp"] = timeStamp
+        paydata = {
+            'timeStamp': timeStamp,
+            'nonceStr': nonceStr,
+            'package': prepay_id,
+            'signType': 'MD5',
+            'paySign': paySign,
+            "out_trade_no": out_trade_no,
+        }
+        return {"paydata": paydata,
+                "order": validated_data["order"],
+                "openid": redata["openid"]}
+
+    def validate_order(self, order):
+        Order = OrderInfo.objects.filter(id=int(order),user=self.context["request"].user)
+        if Order.exists() and not Order[0].trade_no:
+            return order
+        else:
+            raise serializers.ValidationError("订单重复")
 
 
 

@@ -63,7 +63,30 @@ class ShoppingCartViewSet(XBModelViewSet):
     def get_queryset(self):
         return ShoppingCart.objects.filter(user=self.request.user)
 
+
 # ----------------------------------订单支付相关---------------------------------
+
+
+class WxPay(XBCreateModelMixin):
+    # 支付
+    permission_classes = [IsAuthenticated]
+    serializer_class = PayOrederListSerializer
+    authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
+
+    def create(self, request, *args, **kwargs):
+        method = self.request.META["REQUEST_METHOD"].lower()
+        serializer = self.get_serializer(data=request.data)
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+            return CodeStatus(type=method, data=serializer.data["paydata"], header=headers)
+        except:
+            headers = self.get_success_headers(serializer.data)
+            return Response(error_msg(serializer._errors), status=status.HTTP_400_BAD_REQUEST, headers=headers)
+
+    def perform_create(self,serializer):
+        data = serializer.save()
 
 
 class CreateOredrViewSet(XBModelViewSet):
@@ -104,7 +127,7 @@ class CreateOredrViewSet(XBModelViewSet):
         else:
             # 直接下单的
             order_goods = OrderGoods()
-            goods = Goods.objects.get(id=int(order.gooids))
+            goods = Goods.objects.get(id=int(order.goodsid))
             order_goods.goods = goods
             order_goods.goods_num = order.nums
             order_goods.order = order
@@ -183,4 +206,6 @@ class PutPayCode(APIView):
                     "code": ResponseSatatusCode.HTTPCODE_1001_PARAMETER_ERROR.value,
                     "msg": "参数错误"
                 }})
+
+
 
