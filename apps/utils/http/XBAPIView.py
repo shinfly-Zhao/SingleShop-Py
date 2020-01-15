@@ -5,37 +5,25 @@
 """
 from rest_framework import mixins, viewsets
 from .XBHTTPCode import CodeStatus
-from rest_framework import status
 from utils.http.XBHTTPCode import error_msg
 from rest_framework_jwt.views import *
 from .XBHTTPCode import ResponseSatatusCode
 from rest_framework import exceptions, status
 
 
-class XBListModelMixin(viewsets.GenericViewSet,
-                       mixins.ListModelMixin):
+class XBGenericViewSet(viewsets.GenericViewSet):
     def handle_exception(self, exc):
-        """
-        Handle any exception that occurs, by returning an appropriate response,
-        or re-raising the error.
-        """
         if isinstance(exc, (exceptions.NotAuthenticated,
                             exceptions.AuthenticationFailed)):
-            # WWW-Authenticate header for 401 responses, else coerce to 403
             auth_header = self.get_authenticate_header(self.request)
-
             if auth_header:
                 exc.auth_header = auth_header
             else:
                 exc.status_code = status.HTTP_403_FORBIDDEN
 
-
         exception_handler = self.get_exception_handler()
-
         context = self.get_exception_handler_context()
         response = exception_handler(exc, context)
-
-
         if response is None:
             self.raise_uncaught_exception(exc)
         response.exception = True
@@ -46,6 +34,9 @@ class XBListModelMixin(viewsets.GenericViewSet,
             }}
         return response
 
+
+class XBListModelMixin(XBGenericViewSet,
+                       mixins.ListModelMixin):
 
     def list(self, request, *args, **kwargs):
         self.check_object_permissions(self.request, 'a')
@@ -63,7 +54,7 @@ class XBListModelMixin(viewsets.GenericViewSet,
         return CodeStatus(type=method, data=serializer.data)
 
 
-class XBRetrieveModelMixin(viewsets.GenericViewSet,
+class XBRetrieveModelMixin(XBGenericViewSet,
                            mixins.RetrieveModelMixin):
 
     def retrieve(self, request, *args, **kwargs):
@@ -81,7 +72,7 @@ class XBRetrieveModelMixin(viewsets.GenericViewSet,
                 }})
 
 
-class XBCreateModelMixin(viewsets.GenericViewSet,
+class XBCreateModelMixin(XBGenericViewSet,
                          mixins.CreateModelMixin):
     """
     创建资源
@@ -99,7 +90,7 @@ class XBCreateModelMixin(viewsets.GenericViewSet,
             return Response(error_msg(serializer._errors), status=status.HTTP_400_BAD_REQUEST, headers=headers)
 
 
-class XBDestroyModelMixin(viewsets.GenericViewSet,
+class XBDestroyModelMixin(XBGenericViewSet,
                           mixins.DestroyModelMixin):
 
     def destroy(self, request, *args, **kwargs):
@@ -119,14 +110,12 @@ class XBDestroyModelMixin(viewsets.GenericViewSet,
                     "msg": "未找到"
                 }})
 
-
-
     def perform_destroy(self, instance):
         instance.delete()
 
 
 class XBUpdateModelMixin(mixins.UpdateModelMixin,
-                         viewsets.GenericViewSet):
+                         XBGenericViewSet):
 
     def update(self, request, *args, **kwargs):
         method = self.request.META["REQUEST_METHOD"].lower()
@@ -151,8 +140,6 @@ class XBUpdateModelMixin(mixins.UpdateModelMixin,
             return Response(error_msg(serializer._errors), status=status.HTTP_400_BAD_REQUEST, headers=headers)
 
         if getattr(instance, '_prefetched_objects_cache', None):
-            # If 'prefetch_related' has been applied to a queryset, we need to
-            # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
         return CodeStatus(type=method, data=serializer.data)
@@ -166,10 +153,10 @@ class XBUpdateModelMixin(mixins.UpdateModelMixin,
 
 
 class XBModelViewSet(XBListModelMixin,
-                   XBCreateModelMixin,
-                   XBRetrieveModelMixin,
-                   XBDestroyModelMixin,
-                   XBUpdateModelMixin):
+                     XBCreateModelMixin,
+                     XBRetrieveModelMixin,
+                     XBDestroyModelMixin,
+                     XBUpdateModelMixin):
     pass
 
 
