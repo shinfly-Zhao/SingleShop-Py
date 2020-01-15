@@ -9,10 +9,43 @@ from rest_framework import status
 from utils.http.XBHTTPCode import error_msg
 from rest_framework_jwt.views import *
 from .XBHTTPCode import ResponseSatatusCode
+from rest_framework import exceptions, status
 
 
 class XBListModelMixin(viewsets.GenericViewSet,
                        mixins.ListModelMixin):
+    def handle_exception(self, exc):
+        """
+        Handle any exception that occurs, by returning an appropriate response,
+        or re-raising the error.
+        """
+        if isinstance(exc, (exceptions.NotAuthenticated,
+                            exceptions.AuthenticationFailed)):
+            # WWW-Authenticate header for 401 responses, else coerce to 403
+            auth_header = self.get_authenticate_header(self.request)
+
+            if auth_header:
+                exc.auth_header = auth_header
+            else:
+                exc.status_code = status.HTTP_403_FORBIDDEN
+
+
+        exception_handler = self.get_exception_handler()
+
+        context = self.get_exception_handler_context()
+        response = exception_handler(exc, context)
+
+
+        if response is None:
+            self.raise_uncaught_exception(exc)
+        response.exception = True
+        response.data = {
+            "status": {
+                "code": ResponseSatatusCode.HTTPCODE_4001_UNAUTHORIZED.value,
+                "msg": "Unauthorized"
+            }}
+        return response
+
 
     def list(self, request, *args, **kwargs):
         self.check_object_permissions(self.request, 'a')
@@ -74,18 +107,19 @@ class XBDestroyModelMixin(viewsets.GenericViewSet,
         try:
             instance = self.get_object()
             self.perform_destroy(instance)
+            return Response(status=status.HTTP_200_OK, data={
+                "status": {
+                    "code": ResponseSatatusCode.HTTPCODE_2004_NO_CONTENT.value,
+                    "msg": "success"
+                }})
         except:
             return Response(status=status.HTTP_404_NOT_FOUND, data={
                 "status": {
-                    "code": ResponseSatatusCode.HTTPCODE_2004_NO_CONTENT.value,
+                    "code": ResponseSatatusCode.HTTPCODE_4004_NO_FIND.value,
                     "msg": "未找到"
                 }})
 
-        return Response(status=status.HTTP_204_NO_CONTENT, data={
-            "status": {
-                "code": ResponseSatatusCode.HTTPCODE_2004_NO_CONTENT.value,
-                "msg": "success"
-            }})
+
 
     def perform_destroy(self, instance):
         instance.delete()
@@ -121,7 +155,7 @@ class XBUpdateModelMixin(mixins.UpdateModelMixin,
             # forcibly invalidate the prefetch cache on the instance.
             instance._prefetched_objects_cache = {}
 
-        return CodeStatus(type=method, data=serializer.data, html=self.html)
+        return CodeStatus(type=method, data=serializer.data)
 
     def perform_update(self, serializer):
         serializer.save()

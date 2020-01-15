@@ -5,6 +5,7 @@
 """
 from enum import Enum
 from rest_framework.response import Response
+from rest_framework import status
 
 
 class ResponseSatatusCode(Enum):
@@ -19,11 +20,13 @@ class ResponseSatatusCode(Enum):
     HTTPCODE_2001_CREATED = 2001  # 创建成功
     HTTPCODE_2004_NO_CONTENT = 2004  # 成功接收处理
     HTTPCODE_4000_BAD_REQUEST = 4000  # 请求失败
-    HTTPCODE_3000_INCORRECT_CREDENTIALS= 3000  # 用户无效
+    HTTPCODE_3000_INCORRECT_CREDENTIALS = 3000  # 用户无效
+    HTTPCODE_4001_UNAUTHORIZED = 4001  # 用户未登陆
 
 
 def CodeStatus(type, data,html=None,header=None):
-    if type == "get" or "update":
+
+    if type == "get" or type == "update":
         if data:
             return Response(data={
                 "status": {
@@ -40,9 +43,17 @@ def CodeStatus(type, data,html=None,header=None):
                 },
             })
     elif type == "post":
-        return Response(data={
+        return Response(status=status.HTTP_201_CREATED,data={
             "status": {
                 "code": ResponseSatatusCode.HTTPCODE_2001_CREATED.value,
+                "msg": "success"
+            },
+            "data": data
+        })
+    elif type == "delete":
+        return Response(status=status.HTTP_204_NO_CONTENT, data={
+            "status": {
+                "code": ResponseSatatusCode.HTTPCODE_2004_NO_CONTENT.value,
                 "msg": "success"
             },
             "data": data
