@@ -3,13 +3,12 @@
 @time:2019/09/02
 @filename:xb_Response.py
 """
-from rest_framework.response import Response
 from rest_framework import mixins, viewsets
 from .XBHTTPCode import CodeStatus
 from rest_framework import status
-from .XBHTTPCode import ResponseSatatusCode
-from rest_framework.renderers import TemplateHTMLRenderer
 from utils.http.XBHTTPCode import error_msg
+from rest_framework_jwt.views import *
+from .XBHTTPCode import ResponseSatatusCode
 
 
 class XBListModelMixin(viewsets.GenericViewSet,
@@ -35,10 +34,7 @@ class XBRetrieveModelMixin(viewsets.GenericViewSet,
                            mixins.RetrieveModelMixin):
 
     def retrieve(self, request, *args, **kwargs):
-        """
-        retrieve:
-            详情处理
-        """
+
         method = self.request.META["REQUEST_METHOD"].lower()
         try:
             instance = self.get_object()
@@ -47,7 +43,7 @@ class XBRetrieveModelMixin(viewsets.GenericViewSet,
         except:
             return Response(status=status.HTTP_404_NOT_FOUND, data={
                 "status": {
-                    "code": ResponseSatatusCode.HTTPCODE_40004_NOT_FIND.value,
+                    "code": ResponseSatatusCode.HTTPCODE_4004_NO_FIND.value,
                     "msg": "无效页面"
                 }})
 
@@ -72,9 +68,6 @@ class XBCreateModelMixin(viewsets.GenericViewSet,
 
 class XBDestroyModelMixin(viewsets.GenericViewSet,
                           mixins.DestroyModelMixin):
-    """
-    删除对象
-    """
 
     def destroy(self, request, *args, **kwargs):
 
@@ -100,9 +93,6 @@ class XBDestroyModelMixin(viewsets.GenericViewSet,
 
 class XBUpdateModelMixin(mixins.UpdateModelMixin,
                          viewsets.GenericViewSet):
-    """
-    更新对象
-    """
 
     def update(self, request, *args, **kwargs):
         method = self.request.META["REQUEST_METHOD"].lower()
@@ -147,3 +137,47 @@ class XBModelViewSet(XBListModelMixin,
                    XBDestroyModelMixin,
                    XBUpdateModelMixin):
     pass
+
+
+def jwt_response_payload_handler(token, user=None, request=None):
+    """
+    自定义登陆返回数据
+    """
+    if user:
+        return {
+
+            "status": {
+                "code": ResponseSatatusCode.HTTPCODE_1_OK.value,
+                "msg": "success"
+            },
+            "data": {
+                'token': token,
+                'username': user.mobile}
+        }
+    else:
+        return None
+
+
+class XBObtainJSONWebToken(ObtainJSONWebToken):
+    # 自定义登陆视图
+    serializer_class = JSONWebTokenSerializer
+
+    def post(self, request, *args, **kwargs):
+
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid():
+            user = serializer.object.get('user') or request.user
+            token = serializer.object.get('token')
+            response_data = jwt_response_payload_handler(token, user, request)
+            response = Response(response_data)
+            if api_settings.JWT_AUTH_COOKIE:
+                expiration = (datetime.utcnow() +
+                              api_settings.JWT_EXPIRATION_DELTA)
+                response.set_cookie(api_settings.JWT_AUTH_COOKIE,
+                                    token,
+                                    expires=expiration,
+                                    httponly=True)
+            return response
+
+        return Response(error_msg(serializer.errors), status=status.HTTP_400_BAD_REQUEST)

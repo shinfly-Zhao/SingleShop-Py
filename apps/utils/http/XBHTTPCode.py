@@ -10,7 +10,6 @@ from rest_framework.response import Response
 class ResponseSatatusCode(Enum):
     HTTPCODE_1_OK = 1  # 返回成功并且有数据返回
     HTTPCODE_0_OK = 0  # 返回成功但无数据返回
-    HTTPCODE_1000_INCORRECT_CREDENTIALS = 1000  # 无效的凭证（账号不存在）
     HTTPCODE_1001_PARAMETER_ERROR = 1001  # 参数错误
     HTTPCODE_1002_PARAMETER_VALUE_ERROR = 1002  # 参数值错误
     HTTPCODE_1003_NOPOSTDATA = 1003  # 没有POST数据
@@ -20,6 +19,7 @@ class ResponseSatatusCode(Enum):
     HTTPCODE_2001_CREATED = 2001  # 创建成功
     HTTPCODE_2004_NO_CONTENT = 2004  # 成功接收处理
     HTTPCODE_4000_BAD_REQUEST = 4000  # 请求失败
+    HTTPCODE_3000_INCORRECT_CREDENTIALS= 3000  # 用户无效
 
 
 def CodeStatus(type, data,html=None,header=None):
@@ -54,3 +54,4 @@ def error_msg(msg):
                     "code": ResponseSatatusCode.HTTPCODE_1001_PARAMETER_ERROR.value,
                     "msg": msg
                 }}
+
