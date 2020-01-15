@@ -24,9 +24,8 @@ class ResponseSatatusCode(Enum):
     HTTPCODE_4001_UNAUTHORIZED = 4001  # 用户未登陆
 
 
-def CodeStatus(type, data,html=None,header=None):
-
-    if type == "get" or type == "update":
+def CodeStatus(type, data, html=None, header=None):
+    if type == "get" or type == "put":
         if data:
             return Response(data={
                 "status": {
@@ -43,7 +42,7 @@ def CodeStatus(type, data,html=None,header=None):
                 },
             })
     elif type == "post":
-        return Response(status=status.HTTP_201_CREATED,data={
+        return Response(status=status.HTTP_201_CREATED, data={
             "status": {
                 "code": ResponseSatatusCode.HTTPCODE_2001_CREATED.value,
                 "msg": "success"
@@ -62,7 +61,6 @@ def CodeStatus(type, data,html=None,header=None):
 
 def error_msg(msg):
     return {"status": {
-                    "code": ResponseSatatusCode.HTTPCODE_1001_PARAMETER_ERROR.value,
-                    "msg": msg
-                }}
-
+        "code": ResponseSatatusCode.HTTPCODE_1001_PARAMETER_ERROR.value,
+        "msg": msg
+    }}
