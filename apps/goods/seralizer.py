@@ -10,9 +10,13 @@ from .models import *
 
 class GoodsCategoryListSerizlizer(serializers.ModelSerializer):
     # 首页常规类别展示
+    icon = serializers.SerializerMethodField()
+
+    def get_icon(self,instance):
+        return "/media/"+str(instance.icon)
     class Meta:
         model = GoodsCategory
-        fields = ["name", "icon", "code"]
+        fields = ["id", "name", "icon", "code"]
 
 
 class NewsListSeralizer(serializers.ModelSerializer):
