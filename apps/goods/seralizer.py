@@ -6,7 +6,7 @@
 
 from rest_framework import serializers
 from .models import *
-
+from user_operation.models import UserCoupons
 
 class GoodsCategoryListSerizlizer(serializers.ModelSerializer):
     # 首页常规类别展示
@@ -81,6 +81,17 @@ class GoodsRetrieveSerializer(serializers.ModelSerializer):
 
 
 class ShopCouponsSerializer(serializers.ModelSerializer):
+    st_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+    en_time = serializers.DateTimeField(format="%Y-%m-%d %H:%M:%S")
+
     class Meta:
         model = ShopCoupons
+        fields = ["id", "name", "st_time", "en_time", "lines"]
+
+
+class MyShopCouponsSerializer(serializers.ModelSerializer):
+    coupon = ShopCouponsSerializer(many=False)
+
+    class Meta:
+        model = UserCoupons
         fields = "__all__"

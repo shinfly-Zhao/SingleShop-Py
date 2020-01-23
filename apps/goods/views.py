@@ -66,10 +66,15 @@ class ShopCouponsViewSet(XBListModelMixin,
     authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
 
     def get_queryset(self):
-        return ShopCoupons.objects.filter(is_use=True)
+        if self.request.query_params.get("my", None):
+            return UserCoupons.objects.filter(user=self.request.user)
+        else:
+            return ShopCoupons.objects.filter(is_use=True)
 
     def get_serializer_class(self):
-        if self.action == "list":
+        if self.action == "list" and self.request.query_params.get("my", None):
+            return MyShopCouponsSerializer
+        elif self.action == "list":
             return ShopCouponsSerializer
         elif self.action == "create":
             return UserGetCouponSerializer
