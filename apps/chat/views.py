@@ -7,13 +7,15 @@ from rest_framework import filters
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_jwt.authentication import JSONWebTokenAuthentication
 from rest_framework.authentication import SessionAuthentication
+from utils.permissions.permissions import UserHasMobile
 
 
 class BaseChatViewSet(XBListModelMixin,
                       XBCreateModelMixin):
     # 社区
     serializer_class = BaseChatSeralozerListSerializer
-    permission_classes = [IsAuthenticated]
+    pagination_class = NewPageSetPagination
+    permission_classes = [IsAuthenticated, UserHasMobile]
     authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
 
     def get_queryset(self):
@@ -36,6 +38,6 @@ class BaseChatViewSet(XBListModelMixin,
 class ReBaseChatViewSet(XBCreateModelMixin):
     # 社区回复
     serializer_class = ReplayChatCreateSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, UserHasMobile]
     authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
 
