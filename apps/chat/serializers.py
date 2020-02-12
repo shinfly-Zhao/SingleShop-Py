@@ -24,6 +24,8 @@ class ThreeBaseReplayChatSeralozerListSerializer(serializers.ModelSerializer):
 
 class TwoBaseReplayChatSeralozerListSerializer(serializers.ModelSerializer):
     sub_cat = ThreeBaseReplayChatSeralozerListSerializer(many=True)
+    user = UserChatSeralizers(many=False)
+    add_time = serializers.DateTimeField(format="%Y-%d-%d %H:%M:%S")
 
     class Meta:
         model = RreplyBasChat
@@ -33,6 +35,7 @@ class TwoBaseReplayChatSeralozerListSerializer(serializers.ModelSerializer):
 class BaseReplayChatSeralozerListSerializer(serializers.ModelSerializer):
     sub_cat = TwoBaseReplayChatSeralozerListSerializer(many=True)
     user = UserChatSeralizers(many=False)
+    add_time = serializers.DateTimeField(format="%Y-%d-%d %H:%M:%S")
 
     class Meta:
         model = RreplyBasChat
@@ -86,3 +89,7 @@ class ReplayChatCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = RreplyBasChat
         fields = ["title", "user", "parent", "chat"]
+
+
+class MyChatSerializers(serializers.Serializer):
+    nums = serializers.IntegerField()
