@@ -46,9 +46,13 @@ class BaseChatSeralozerListSerializer(serializers.ModelSerializer):
     user = UserChatSeralizers(many=False)
     is_fav = serializers.SerializerMethodField()
     add_time = serializers.DateTimeField(format="%Y-%d-%d %H:%M:%S")
+    fav_nums = serializers.SerializerMethodField()
 
-    def get_is_fav(self,instance):
-        fav = UserChatFav.objects.filter(user=self.context["request"].user,chat=instance)
+    def get_fav_nums(self, instance):
+        return UserChatFav.objects.filter(chat=instance).count()
+
+    def get_is_fav(self, instance):
+        fav = UserChatFav.objects.filter(user=self.context["request"].user, chat=instance)
         if fav:
             return 1
         else:
@@ -59,7 +63,7 @@ class BaseChatSeralozerListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseChat
-        fields = "__all__"
+        fields = ["id", "sub_chat", "imgs", "user", "title", "fav_nums", "add_time", "is_fav"]
 
 
 class BaseChatCreateSerializer(serializers.ModelSerializer):
@@ -70,7 +74,7 @@ class BaseChatCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseChat
-        fields = ["title","user","imgs"]
+        fields = ["title", "user", "imgs"]
 
 
 class ReplayChatCreateSerializer(serializers.ModelSerializer):
@@ -81,4 +85,4 @@ class ReplayChatCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RreplyBasChat
-        fields = ["title", "user", "parent","chat"]
+        fields = ["title", "user", "parent", "chat"]
