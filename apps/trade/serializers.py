@@ -7,7 +7,7 @@
 from rest_framework import serializers
 from goods.seralizer import GoodsListSerializer
 from .models import *
-from datetime import datetime ,timedelta
+from datetime import datetime, timedelta
 from random import Random
 from utils.pay.wx.xcu import WXPay
 import time
@@ -36,6 +36,7 @@ class ShopCartCreateSerializer(serializers.Serializer):
                                         "min_value": "商品数量不能小于一",
                                         "required": "请选择购买数量"
                                     }, help_text="数量")
+    up_down = serializers.BooleanField(write_only=True)
     goods = serializers.PrimaryKeyRelatedField(required=True, queryset=Goods.objects.all(), help_text="商品ID")
 
     def create(self, validated_data):
@@ -44,9 +45,15 @@ class ShopCartCreateSerializer(serializers.Serializer):
         goods = validated_data["goods"]
         existed = ShoppingCart.objects.filter(user=user, goods=goods)
         if existed:
+
             existed = existed[0]
             existed.nums += nums
             existed.save()
+            if existed.nums > 0:
+                pass
+            else:
+                existed.nums = 0
+                existed.save()
         else:
             existed = ShoppingCart.objects.create(**validated_data)
         return existed
@@ -56,6 +63,13 @@ class ShopCartCreateSerializer(serializers.Serializer):
         instance.nums = validated_data["nums"]
         instance.save()
         return instance
+
+    def validate(self, attr):
+        if not attr["up_down"]:
+            attr["nums"] = - attr["nums"]
+        del attr["up_down"]
+
+        return attr
 
 
 class OrderGoodsSeralizer(serializers.ModelSerializer):
@@ -85,16 +99,16 @@ class CreateOrederSerializer(serializers.ModelSerializer):
         default=serializers.CurrentUserDefault()
     )
     # 创建订单后返回商品数据
-    goods = GoodsOrderInfo(many=True,read_only=True)
+    goods = GoodsOrderInfo(many=True, read_only=True)
 
     # cart = serializers.CharField(help_text="购物车id")
 
     class Meta:
         model = OrderInfo
-        fields = ("id", "address", "user", "cart", "goodsid","nums","goods")
+        fields = ("id", "address", "user", "cart", "goodsid", "nums", "goods")
 
-    def create(self,validated_data):
-        validated_data["cart"] = validated_data.get("cart",None)
+    def create(self, validated_data):
+        validated_data["cart"] = validated_data.get("cart", None)
         if validated_data["cart"]:
             # 购物车下单
             validated_data["cart"] = validated_data["cart"].split("-")
@@ -114,7 +128,7 @@ class CreateOrederSerializer(serializers.ModelSerializer):
         else:
             # 直接下单
             goods = Goods.objects.get(id=int(validated_data["goodsid"]))
-            order_mount = goods.shop_price * int( validated_data["nums"])
+            order_mount = goods.shop_price * int(validated_data["nums"])
             validated_data["order_mount"] = order_mount
             # 订单创建时间
             validated_data["add_time"] = datetime.now() + timedelta(hours=8)
@@ -126,12 +140,12 @@ class CreateOrederSerializer(serializers.ModelSerializer):
         # 校验购物车
         user = self.context["request"].user
         # 判断是否购物车下单
-        cart = attr.get("cart",None)
-        goodsid = attr.get("goodsid",None)
+        cart = attr.get("cart", None)
+        goodsid = attr.get("goodsid", None)
         if cart:
             cart = cart.split("-")
             for car in cart:
-                shop = ShoppingCart.objects.filter(id=int(car),user=user)
+                shop = ShoppingCart.objects.filter(id=int(car), user=user)
                 if shop.exists():
                     continue
                 else:
@@ -155,7 +169,7 @@ class PayOrederSerializer(serializers.Serializer):
         default=serializers.CurrentUserDefault()
     )
 
-    order = serializers.IntegerField(required=True,help_text="订单id")
+    order = serializers.IntegerField(required=True, help_text="订单id")
     paydata = serializers.JSONField(read_only=True)
     openid = serializers.CharField()
 
@@ -178,7 +192,7 @@ class PayOrederSerializer(serializers.Serializer):
         total_fee = PayOrder.order_mount  # 总金额
 
         # 创建订单详情
-        redata = wx_pay.pay(ip=ip, nonce_str=self.generate_order_sn(user.id), total_fee=int(total_fee)*100,
+        redata = wx_pay.pay(ip=ip, nonce_str=self.generate_order_sn(user.id), total_fee=int(total_fee) * 100,
                             out_trade_no=out_trade_no, )
         # 开始创建订单
 
@@ -210,42 +224,11 @@ class PayOrederSerializer(serializers.Serializer):
                 "openid": redata["openid"]}
 
     def validate_order(self, order):
-        Order = OrderInfo.objects.filter(id=int(order),user=self.context["request"].user)
+        Order = OrderInfo.objects.filter(id=int(order), user=self.context["request"].user)
         if Order.exists() and not Order[0].trade_no:
             return order
         else:
             raise serializers.ValidationError("订单重复")
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 class OrderGoodsSeralizer(serializers.ModelSerializer):
@@ -276,11 +259,12 @@ class PayOrederListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = OrderInfo
-        fields = ("id", "goods", "order_mount", "pay_status", "add_time", "cart","goodsid","nums")    #  cart, goodsid,nums 重新支付使用
+        fields = (
+            "id", "goods", "order_mount", "pay_status", "add_time", "cart", "goodsid",
+            "nums")  # cart, goodsid,nums 重新支付使用
 
 
 class PayOrederUpdateSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = OrderInfo
         fields = ["pay_status"]
@@ -301,3 +285,6 @@ class OrderPutSerializer(serializers.Serializer):
     ))
 
 
+# 获取Openid
+class OpenIdGetSerialoizers(serializers.Serializer):
+    code = serializers.CharField()
