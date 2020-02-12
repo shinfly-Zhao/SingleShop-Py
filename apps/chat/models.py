@@ -26,6 +26,7 @@ class RreplyBasChat(models.Model):
     parent = models.ForeignKey("self", null=True, blank=True, verbose_name="所属回帖", help_text="所属回帖",
                                related_name="sub_cat", on_delete=models.CASCADE)
     add_time = models.DateTimeField(default=datetime.now, verbose_name="发布时间")
+    is_read = models.BooleanField(default=False, verbose_name="是否已读")
 
     class Meta:
         verbose_name = '回帖管理'
