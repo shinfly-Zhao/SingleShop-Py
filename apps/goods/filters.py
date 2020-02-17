@@ -11,6 +11,7 @@ from django.db.models import Q
 
 class GoodsFilter(django_filters.rest_framework.FilterSet):
     top_category = django_filters.NumberFilter(method="top_category_filter",help_text="商品所属类别id")  # 查找一类商品下的所有商品
+    name = django_filters.CharFilter(field_name="name", lookup_expr="icontains")
 
     def top_category_filter(self, queryset, name, value):
         """
@@ -23,4 +24,4 @@ class GoodsFilter(django_filters.rest_framework.FilterSet):
 
     class Meta:
         model = Goods
-        fields = ["top_category"]
+        fields = ["top_category", "name"]

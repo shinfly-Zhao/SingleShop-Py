@@ -107,6 +107,7 @@ class ShopCoupons(models.Model):
     lines = models.FloatField(verbose_name="额度", help_text="额度")
     is_use = models.BooleanField(default=True, verbose_name="是否可用", help_text="是否可用")
     nums = models.IntegerField(verbose_name="总数", help_text="总数")
+    max = models.FloatField(verbose_name="满额", default=100)
 
     class Meta:
         verbose_name = '优惠券'
