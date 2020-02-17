@@ -20,11 +20,13 @@ class BaseChat(models.Model):
 class RreplyBasChat(models.Model):
     # 回复基本论坛
     title = models.CharField(max_length=100, verbose_name="标题", help_text="标题")
-    user = models.ForeignKey(UserProfile, verbose_name="所属用户", on_delete=models.CASCADE)
+    user = models.ForeignKey(UserProfile, verbose_name="所属用户", on_delete=models.CASCADE, related_name='chat_user')
     chat = models.ForeignKey(BaseChat, verbose_name="基础帖子", on_delete=models.CASCADE, null=True, blank=True,
                              related_name="sub_chat")
-    parent = models.ForeignKey("self", null=True, blank=True, verbose_name="所属回帖", help_text="所属回帖",
-                               related_name="sub_cat", on_delete=models.CASCADE)
+    tchat = models.ForeignKey("self", verbose_name="所属二级", on_delete=models.CASCADE, null=True, blank=True,
+                              related_name="sub_tchat")
+    ruser = models.ForeignKey(UserProfile, verbose_name="回复的用户", on_delete=models.CASCADE, related_name='chat_ruser',
+                              null=True, blank=True)
     add_time = models.DateTimeField(default=datetime.now, verbose_name="发布时间")
     is_read = models.BooleanField(default=False, verbose_name="是否已读")
 

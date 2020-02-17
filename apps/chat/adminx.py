@@ -10,11 +10,11 @@ from .models import *
 
 
 class BaseChatXadmin():
-    list_display = ['title',"user","imgs"]
+    list_display = ['title', "user", "tchat", "ruser", "add_time"]
 
 
 class ReplayBaseChatXadmin():
-    list_display = ['title',"user","chat","parent"]
+    list_display = ['title', "user", "chat"]
 
 
 class UserFavChatXadmin():
