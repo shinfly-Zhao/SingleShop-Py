@@ -8,9 +8,13 @@ from .serializers import *
 from rest_framework_xml.parsers import XMLParser
 from rest_framework.views import APIView
 from rest_framework import status
+from utils.pay.wx.xcu import Openid
+from utils.page.page import NewPageSetPagination
 
 
 # 微信返回的信息为xml
+
+
 class WechatPaymentXMLParser(XMLParser):
     media_type = 'text/xml'
 
@@ -29,6 +33,32 @@ class ShoppingCartViewSet(XBModelViewSet):
     permission_classes = [IsAuthenticated,IsOwnerOrReadOnly]
     authentication_classes = [JSONWebTokenAuthentication,SessionAuthentication]
     serializer_class = ShopCartListSerializer
+
+    def get_queryset(self):
+        num = self.request.query_params.get("num", None)
+        if num:
+            return [{"nums": ShoppingCart.objects.filter(user=self.request.user).count()}]
+        else:
+            return ShoppingCart.objects.filter(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        try:
+            num = self.request.query_params.get("num", None)
+            self.check_object_permissions(self.request, 'a')
+            method = self.request.META["REQUEST_METHOD"].lower()
+            queryset = self.filter_queryset(self.get_queryset())
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            if num:
+
+                serializer = self.get_serializer(queryset, many=True)
+            else:
+                serializer = self.get_serializer(queryset, many=True)
+            return CodeStatus(type=method, data=serializer.data)
+        except:
+            return CodeStatus(type=method, data=None)
 
     def perform_create(self, serializer):
         # 库存相应减少
@@ -57,11 +87,13 @@ class ShoppingCartViewSet(XBModelViewSet):
     def get_serializer_class(self):
         if self.action == 'create':
             return ShopCartCreateSerializer
+        elif self.action == "list" and self.request.query_params.get("num", None):
+            return CartNumsSerializers
         else:
             return ShopCartListSerializer
 
-    def get_queryset(self):
-        return ShoppingCart.objects.filter(user=self.request.user)
+    # def get_queryset(self):
+    #     return ShoppingCart.objects.filter(user=self.request.user)
 
 
 # ----------------------------------订单支付相关---------------------------------
@@ -70,7 +102,8 @@ class ShoppingCartViewSet(XBModelViewSet):
 class WxPay(XBCreateModelMixin):
     # 支付
     permission_classes = [IsAuthenticated]
-    serializer_class = PayOrederListSerializer
+    # serializer_class = PayOrederListSerializer
+    serializer_class = PayOrederSerializer
     authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
 
     def create(self, request, *args, **kwargs):
@@ -208,4 +241,21 @@ class PutPayCode(APIView):
                 }})
 
 
+class OpenIdApiView(XBCreateModelMixin):
+    # permission_classes = [IsAuthenticated]
+    # authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
+    serializer_class = OpenIdGetSerialoizers
 
+    def create(self, request, *args, **kwargs):
+        # try:
+        method = self.request.META["REQUEST_METHOD"].lower()
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        openid = self.perform_create(serializer)
+        return CodeStatus(type=method, data=openid)
+        # except:
+        #     headers = self.get_success_headers(serializer.data)
+        #     return Response(error_msg(serializer._errors), status=status.HTTP_400_BAD_REQUEST, headers=headers)
+
+    def perform_create(self, data):
+        return Openid(data["code"]).openid()

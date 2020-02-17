@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 from random import Random
 from utils.pay.wx.xcu import WXPay
 import time
+from SingleShop.settings import PAYMONEY
 
 
 class ShopCartListSerializer(serializers.ModelSerializer):
@@ -38,6 +39,11 @@ class ShopCartCreateSerializer(serializers.Serializer):
                                     }, help_text="数量")
     up_down = serializers.BooleanField(write_only=True)
     goods = serializers.PrimaryKeyRelatedField(required=True, queryset=Goods.objects.all(), help_text="商品ID")
+    all_nums = serializers.SerializerMethodField(read_only=True)
+
+    def get_all_nums(self, instance):
+        user = self.context["request"].user
+        return ShoppingCart.objects.filter(user=user).count()
 
     def create(self, validated_data):
         user = self.context["request"].user
@@ -45,7 +51,6 @@ class ShopCartCreateSerializer(serializers.Serializer):
         goods = validated_data["goods"]
         existed = ShoppingCart.objects.filter(user=user, goods=goods)
         if existed:
-
             existed = existed[0]
             existed.nums += nums
             existed.save()
@@ -70,6 +75,10 @@ class ShopCartCreateSerializer(serializers.Serializer):
         del attr["up_down"]
 
         return attr
+
+
+class CartNumsSerializers(serializers.Serializer):
+    nums = serializers.IntegerField()
 
 
 class OrderGoodsSeralizer(serializers.ModelSerializer):
@@ -101,11 +110,10 @@ class CreateOrederSerializer(serializers.ModelSerializer):
     # 创建订单后返回商品数据
     goods = GoodsOrderInfo(many=True, read_only=True)
 
-    # cart = serializers.CharField(help_text="购物车id")
 
     class Meta:
         model = OrderInfo
-        fields = ("id", "address", "user", "cart", "goodsid", "nums", "goods")
+        fields = ("id", "address", "user", "cart", "goodsid", "nums", "goods", "post_script")
 
     def create(self, validated_data):
         validated_data["cart"] = validated_data.get("cart", None)
@@ -203,6 +211,7 @@ class PayOrederSerializer(serializers.Serializer):
             Order.order_sn = order_sn
             Order.save()
 
+        # prepay_id = redata["prepay_id"]
         prepay_id = redata["prepay_id"]
         # 获取随机字符串
         nonceStr = redata["nonce_str"]
@@ -260,8 +269,8 @@ class PayOrederListSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderInfo
         fields = (
-            "id", "goods", "order_mount", "pay_status", "add_time", "cart", "goodsid",
-            "nums")  # cart, goodsid,nums 重新支付使用
+            "id", "goods", "order_mount", "pay_status", "cart", "goodsid",
+            "nums", "add_time")  # cart, goodsid,nums 重新支付使用
 
 
 class PayOrederUpdateSerializer(serializers.ModelSerializer):
