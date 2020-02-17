@@ -19,12 +19,12 @@ class UserAddressListSerializer(serializers.ModelSerializer):
         model = UserAddress
 
         fields = ("id", "signer_name", "signer_mobile", "province",
-                  "city", "district", "address")
+                  "city", "district", "address", "is_default")
 
 
 class UserAddressCreateSerializer(serializers.ModelSerializer):
     # 创建收获地址
-    add_time = serializers.DateField(read_only=True)
+    add_time = serializers.DateTimeField(read_only=True)
     user = serializers.HiddenField(
         default=serializers.CurrentUserDefault()
     )
@@ -32,6 +32,22 @@ class UserAddressCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserAddress
         fields = "__all__"
+
+    def create(self, validate_data):
+        # 创建地址
+        if validate_data["is_default"]:
+            # 如果是默认 其他地址就不是默认
+            alluseradd = UserAddress.objects.filter(user=self.context["request"].user)
+            if alluseradd:
+                for add in alluseradd:
+                    add.is_default = False
+                    add.save()
+            else:
+                pass
+        else:
+            pass
+        useraddress = UserAddress.objects.create(**validate_data)
+        return useraddress
 
 
 class UserAddressUpdateSerializer(serializers.ModelSerializer):
@@ -42,7 +58,7 @@ class UserAddressUpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserAddress
-        fields = ("province", "user", "city", "district", "address", "signer_name", "signer_mobile")
+        fields = ("province", "user", "city", "district", "address", "signer_name", "signer_mobile", "is_default")
 
 
 class UserWxRegSerializer(serializers.ModelSerializer):

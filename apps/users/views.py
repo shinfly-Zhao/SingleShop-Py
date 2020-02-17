@@ -22,25 +22,48 @@ from rest_framework_jwt.serializers import jwt_encode_handler, jwt_payload_handl
 from SingleShop.settings import MPBILEAPIKEY
 
 
-class UserAddressViewSet(XBListModelMixin,
-                         XBRetrieveModelMixin,
-                         XBCreateModelMixin,
-                         XBUpdateModelMixin,
-                         XBDestroyModelMixin):
-    # 用户地址管理
+class UserAddressViewSet(XBModelViewSet):
+    """
+    list:
+        地址列表
+    create:
+        新增地址
+    retrieve:
+        地址详情
+    update:
+        地址修改
+    delete:
+        地址删除
+    """
     permission_classes = [IsAuthenticated,IsOwnerOrReadOnly]
     authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
 
     def get_queryset(self):
-        return UserAddress.objects.filter(user=self.request.user)
+        return UserAddress.objects.filter(user=self.request.user).order_by("-is_default")
 
     def get_serializer_class(self):
         if self.action == "list":
             return UserAddressListSerializer
         elif self.action == "update":
             return UserAddressUpdateSerializer
+        elif self.action == "create":
+            return UserAddressCreateSerializer
         else:
-            return UserAddressUpdateSerializer
+            return UserAddressListSerializer
+
+    def perform_update(self, serializer):
+        alluseradd = UserAddress.objects.filter(user=self.request.user)
+        if alluseradd:
+            for add in alluseradd:
+                add.is_default = False
+                add.save()
+            else:
+                pass
+        else:
+            pass
+        instance = serializer.save()
+        instance.is_default = True
+        instance.save()
 
 
 class CustomBackend(ModelBackend):
@@ -60,19 +83,6 @@ class CustomBackend(ModelBackend):
                 return None
         except Exception as e:
             raise ValidationError(error_msg("用户名或密码错误"))
-
-
-def jwt_response_payload_handler(token, user=None, request=None):
-    """
-    自定义登陆返回数据
-    """
-    if user:
-        return {
-            'token': token,
-            'username': user.mobile,
-        }
-    else:
-        return None
 
 
 class UserRegistViewSet(XBCreateModelMixin):
@@ -142,7 +152,7 @@ class SmsCodeViewSet(XBCreateModelMixin):
             # 发送失败
             return Response(status=status.HTTP_400_BAD_REQUEST,data={
                 "status": {
-                    "code": ResponseSatatusCode.HTTPCODE_40001_THREE_ERROR.value,
+                    "code": ResponseSatatusCode.HTTPCODE_4001_UNAUTHORIZED.value,
                     "msg": sms_status["msg"]
                 }
             })

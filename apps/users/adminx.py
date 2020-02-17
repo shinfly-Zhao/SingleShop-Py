@@ -18,8 +18,12 @@ class GlobalSettings(object):
     site_title = "SignleShop管理"
     site_footer = "SignleShop管理"
     menu_style = "accordion"
+    apps_icons = {"goods": "fa fa-television",
+                  "trade": "fa fa-paypal",
 
+                  'chat': 'fa fa-wechat',
 
+                  }
 
 
 class UserAddressAdmin():
