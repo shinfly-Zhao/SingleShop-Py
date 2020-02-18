@@ -8,6 +8,9 @@ class BaseChat(models.Model):
     imgs = models.CharField(max_length=2000, verbose_name="图片地址", help_text="图片地址",null=True,blank=True)
     add_time = models.DateTimeField(default=datetime.now, verbose_name="发布时间")
     user = models.ForeignKey(UserProfile, verbose_name="所属用户", on_delete=models.CASCADE, related_name="base_chat")
+    is_top = models.CharField(max_length=10, choices=(("top", "置顶"), ("basic", "不置顶")), default="basic",
+                              verbose_name="是否置顶")
+    is_use = models.BooleanField(default=False, verbose_name="是否通过")
 
     class Meta:
         verbose_name = '社群管理'

@@ -74,7 +74,7 @@ class BaseChatSeralozerListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseChat
-        fields = ["id", "sub_chat", "imgs", "user", "title", "fav_nums", "add_time", "is_fav"]
+        fields = ["id", "sub_chat", "imgs", "user", "title", "fav_nums", "add_time", "is_fav", "is_top"]
 
 
 class BaseChatCreateSerializer(serializers.ModelSerializer):
@@ -183,4 +183,4 @@ class BaseChatReplaySeralozerListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BaseChat
-        fields = ["id", "sub_chat", "imgs", "user", "title", "fav_nums", "add_time", "is_fav"]
+        fields = ["id", "sub_chat", "imgs", "user", "title", "fav_nums", "add_time", "is_fav", "is_top"]

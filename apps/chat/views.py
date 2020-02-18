@@ -32,7 +32,7 @@ class BaseChatViewSet(XBListModelMixin,
         replay = self.request.query_params.get("replay", None)
         if my:
             self.pagination_class = NewPageSetPagination
-            return BaseChat.objects.filter(user=self.request.user).order_by("-add_time")
+            return BaseChat.objects.filter(user=self.request.user, is_use=True).order_by("-add_time")
         elif num:
             nums = RreplyBasChat.objects.filter(is_read=False, ruser=self.request.user).count()
             return [{"nums": nums}]
@@ -45,7 +45,7 @@ class BaseChatViewSet(XBListModelMixin,
                 two_list.append(replay.tchat)
             # for replay in allreplay:
             #
-            allBaseChat = BaseChat.objects.filter(sub_chat__in=two_list).order_by("-add_time")
+            allBaseChat = BaseChat.objects.filter(sub_chat__in=two_list, is_use=True).order_by("-add_time")
             # 帖子设置已读
             # for replay in allreplay:
             #     replay.is_read = True
@@ -57,9 +57,9 @@ class BaseChatViewSet(XBListModelMixin,
                 time = (datetime.now() - timedelta(days=time))
                 now = (datetime.now() + timedelta(hours=8)).strftime("%Y-%m-%d")
                 now = datetime.strptime(now + " 23:59:59", "%Y-%m-%d %H:%M:%S")
-                return BaseChat.objects.filter(add_time__range=(time, now)).order_by("-add_time")
+                return BaseChat.objects.filter(add_time__range=(time, now), is_use=True).order_by("-add_time")
             else:
-                return BaseChat.objects.all().order_by("-add_time")
+                return BaseChat.objects.filter(is_use=True).order_by("-is_top", "-add_time")
 
     def get_serializer_class(self):
         if self.action == "create":
