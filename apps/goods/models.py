@@ -115,3 +115,16 @@ class ShopCoupons(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PS(models.Model):
+    price = models.FloatField(verbose_name="配送费", default=0)
+    is_use = models.BooleanField(default=True, verbose_name="是否可用", help_text="是否可用")
+    add_time = models.DateTimeField(default=datetime.now, verbose_name="添加时间", help_text="添加时间")
+
+    class Meta:
+        verbose_name = '配送费'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return str(self.price) + "元配送费设置成功"
