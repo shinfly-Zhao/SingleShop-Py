@@ -7,7 +7,7 @@
 from rest_framework import serializers
 from .models import *
 from user_operation.models import UserCoupons
-from SingleShop.settings import PAYMONEY
+
 
 class GoodsCategoryListSerizlizer(serializers.ModelSerializer):
     # 首页常规类别展示
@@ -80,14 +80,9 @@ class GoodsRetrieveSerializer(serializers.ModelSerializer):
     def get_goods_front_image(self, instance):
         return "/media/" + str(instance.goods_front_image)
 
-    ps = serializers.SerializerMethodField(read_only=True)
-
-    def get_ps(self, instance):
-        return PAYMONEY
-
     class Meta:
         model = Goods
-        fields = ('id', 'name', 'market_price', 'shop_price', "images", "category", "goods_front_image", "ps")
+        fields = ('id', 'name', 'market_price', 'shop_price', "images", "category", "goods_front_image")
 
 
 class ShopCouponsSerializer(serializers.ModelSerializer):
@@ -105,3 +100,9 @@ class MyShopCouponsSerializer(serializers.ModelSerializer):
     class Meta:
         model = UserCoupons
         fields = "__all__"
+
+
+class PsSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = PS
+        fields = ["price"]

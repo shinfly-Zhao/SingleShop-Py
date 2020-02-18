@@ -19,7 +19,7 @@ class GoodsCategoryViewSet(XBListModelMixin):
     serializer_class = GoodsCategoryListSerizlizer
 
     def get_queryset(self):
-        return GoodsCategory.objects.all().order_by("-index")
+        return GoodsCategory.objects.all().order_by("index")
 
 
 class NewsViewSet(XBListModelMixin):
@@ -82,3 +82,20 @@ class ShopCouponsViewSet(XBListModelMixin,
             return ShopCouponsSerializer
 
 
+class PSViewSet(XBListModelMixin):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
+    serializer_class = PsSerializers
+
+    def get_queryset(self):
+        return PS.objects.filter(is_use=True)[0]
+
+    def list(self, request, *args, **kwargs):
+        method = self.request.META["REQUEST_METHOD"].lower()
+        try:
+            self.check_object_permissions(self.request, 'a')
+            queryset = self.filter_queryset(self.get_queryset())
+            serializer = self.get_serializer(queryset, many=False)
+            return CodeStatus(type=method, data=serializer.data)
+        except:
+            return CodeStatus(type=method, data={"price": 0})
