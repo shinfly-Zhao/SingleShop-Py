@@ -12,7 +12,8 @@ from django.db.models import Q
 
 
 class BaseChatViewSet(XBListModelMixin,
-                      XBCreateModelMixin):
+                      XBCreateModelMixin,
+                      XBRetrieveModelMixin):
     # 社区
     serializer_class = BaseChatSeralozerListSerializer
     permission_classes = [IsAuthenticated, UserHasMobile]
@@ -43,13 +44,11 @@ class BaseChatViewSet(XBListModelMixin,
             two_list = []
             for replay in allreplay:
                 two_list.append(replay.tchat)
-            # for replay in allreplay:
-            #
             allBaseChat = BaseChat.objects.filter(sub_chat__in=two_list, is_use=True).order_by("-add_time")
             # 帖子设置已读
-            # for replay in allreplay:
-            #     replay.is_read = True
-            #     replay.save()
+            for replay in allreplay:
+                replay.is_read = True
+                replay.save()
             return allBaseChat
         else:
             self.pagination_class = NewPageSetPagination

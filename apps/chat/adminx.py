@@ -10,11 +10,14 @@ from .models import *
 
 
 class BaseChatXadmin():
-    list_display = ['title', "user", "tchat", "ruser", "add_time"]
+    list_display = ['title', "user", "is_top", "is_use", "add_time", ]
+    list_editable = ["is_top", "is_use"]
+    list_filter = ["title"]
 
 
 class ReplayBaseChatXadmin():
     list_display = ['title', "user", "chat"]
+    list_filter = ["title"]
 
 
 class UserFavChatXadmin():
@@ -22,5 +25,5 @@ class UserFavChatXadmin():
 
 
 xadmin.site.register(BaseChat,BaseChatXadmin)
-xadmin.site.register(RreplyBasChat,ReplayBaseChatXadmin)
+xadmin.site.register(RreplyBasChat, ReplayBaseChatXadmin)
 xadmin.site.register(UserChatFav,UserFavChatXadmin)
