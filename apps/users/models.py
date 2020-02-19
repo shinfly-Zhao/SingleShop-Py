@@ -15,7 +15,8 @@ class UserProfile(AbstractUser):
     email = models.EmailField(max_length=100, null=True, blank=True, verbose_name="邮箱")
     utype = models.CharField(default="members", max_length=50, choices=(("members", "会员"), ("admin", "管理员")),
                              verbose_name="用户类型")
-    user_font = models.ImageField(upload_to="user/font/", null=True, blank=True, verbose_name="用户头像")
+    user_font = models.ImageField(upload_to="user/font/", null=True, blank=True, verbose_name="用户头像",
+                                  default="user/font/sindleshop.png")
     nick_name = models.CharField(max_length=100, verbose_name="用户昵称", default="暂无昵称")
     add_time = models.DateTimeField(default=datetime.now, verbose_name="注册时间")
 
@@ -64,3 +65,17 @@ class VerifyCode(models.Model):
 
     def __str__(self):
         return self.code
+
+
+class Partner(models.Model):
+    name = models.CharField(verbose_name="名称", max_length=100)
+    phone = models.CharField(verbose_name="联系方式", max_length=11)
+    address = models.CharField(verbose_name="所在城市", max_length=100)
+    desc = models.CharField(verbose_name="个人介绍", max_length=500)
+
+    class Meta:
+        verbose_name = "合伙人管理"
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return self.name

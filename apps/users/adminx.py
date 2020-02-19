@@ -30,5 +30,10 @@ class UserAddressAdmin():
     list_display = ["user"]
 
 
+class PartnerXadmin():
+    list_display = ["name", "phone", "address", "desc"]
+
+
 xadmin.site.register(views.BaseAdminView, BaseSetting)
 xadmin.site.register(views.CommAdminView, GlobalSettings)
+xadmin.site.register(Partner, PartnerXadmin)

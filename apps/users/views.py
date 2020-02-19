@@ -85,7 +85,7 @@ class CustomBackend(ModelBackend):
             raise ValidationError(error_msg("用户名或密码错误"))
 
 
-class UserRegistViewSet(XBCreateModelMixin):
+class UserRegistViewSet(XBCreateModelMixin, ):
     """
     用户注册(微信注册)
     """
@@ -171,3 +171,15 @@ class UserBingdingMobileViewSet(XBCreateModelMixin):
     permission_classes = [IsAuthenticated, IsOwnerOrReadOnly]
     authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
     serializer_class = MobileBinding
+
+
+class UserUpDateInfoViewSet(XBCreateModelMixin):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
+    serializer_class = UserUpdateInfo
+
+
+class PartnerViewSet(XBCreateModelMixin):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JSONWebTokenAuthentication, SessionAuthentication]
+    serializer_class = PartnerSerializers

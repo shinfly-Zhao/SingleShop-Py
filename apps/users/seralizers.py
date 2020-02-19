@@ -152,3 +152,19 @@ class SmsSerializer(serializers.Serializer):
         if VerifyCode.objects.filter(add_time__gt=one_mintes_ago, mobile=mobile).count():
             raise serializers.ValidationError("距离上次发送还未超过60s")
         return mobile
+
+
+class UserUpdateInfo(serializers.Serializer):
+    nick_name = serializers.CharField()
+
+    def create(self, validate_data):
+        user = self.context["request"].user
+        user.nick_name = validate_data["nick_name"]
+        user.save()
+        return user
+
+
+class PartnerSerializers(serializers.ModelSerializer):
+    class Meta:
+        model = Partner
+        fields = "__all__"
